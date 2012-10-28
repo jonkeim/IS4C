@@ -256,7 +256,7 @@ printf("<input type=password name=SERVER_PASS value=\"%s\" />",
 confsave('mPass',"'".$CORE_LOCAL->get('mPass')."'");
 ?>
 <br />
-Server transaction database name:
+Server Transaction DB name:
 <?php
 if (isset($_REQUEST['SERVER_DB'])) $CORE_LOCAL->set('mDatabase',$_REQUEST['SERVER_DB']);
 printf("<input type=text name=SERVER_DB value=\"%s\" />",
