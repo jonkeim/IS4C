@@ -344,7 +344,7 @@ function arDisplays($subtype){
 	$ret .= "<select id=cardnos name=cardno[] multiple size=20>";
 
 	$query = "SELECT a.cardno, c.LastName
-		   FROM {$TRANS}AR_EOM_Summary_cache a 
+		   FROM {$TRANS}AR_EOM_Summary a 
 		   LEFT JOIN custdata as c on c.CardNo=a.cardno and c.personNum=1
 		   LEFT JOIN suspensions as s ON a.cardno=s.cardno
 		   WHERE c.Type not in ('TERM') and
@@ -355,7 +355,7 @@ function arDisplays($subtype){
 		   ORDER BY a.cardno";
 	if ($subtype == "business"){
 		$query = "SELECT a.cardno, c.LastName
-			   FROM {$TRANS}AR_EOM_Summary_cache a LEFT JOIN
+			   FROM {$TRANS}AR_EOM_Summary a LEFT JOIN
 			   custdata as c on c.CardNo=a.cardno and c.personNum=1
 			   LEFT JOIN suspensions as s ON a.cardno=s.cardno
 			   WHERE c.Type not in ('TERM') and
@@ -366,7 +366,7 @@ function arDisplays($subtype){
 	elseif($subtype == "allbusiness"){
 		$query = "SELECT c.CardNo,c.LastName FROM
 			custdata AS c LEFT JOIN
-			{$TRANS}newBalanceToday_cust n ON c.CardNo=n.memnum
+			{$TRANS}ar_live_balance n ON c.CardNo=n.card_no
 			LEFT JOIN suspensions AS s ON c.cardno=s.CardNo
 			WHERE c.Type NOT IN ('TERM') AND
 			(c.memType = 2 or s.memtype1=2)
