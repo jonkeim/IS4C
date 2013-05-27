@@ -21,6 +21,7 @@
 
 *********************************************************************************/
 
+ini_set('display_errors','Off');
 include_once(realpath(dirname(__FILE__).'/../lib/AutoLoader.php'));
 
 if ($CORE_LOCAL->get("End") == 1) {
@@ -34,12 +35,30 @@ if ($CORE_LOCAL->get("End") == 1) {
 
 $receiptType = isset($_REQUEST['receiptType'])?$_REQUEST['receiptType']:'';
 
+$yesSync = JsonLib::array_to_json(array('sync'=>True));
+$noSync = JsonLib::array_to_json(array('sync'=>False));
+$output = $noSync;
+
 if (strlen($receiptType) > 0) {
 
 	$receiptContent = array();
+
+	$kicker_class = ($CORE_LOCAL->get("kickerModule")=="") ? 'Kicker' : $CORE_LOCAL->get('kickerModule');
+	$kicker_object = new $kicker_class();
+	if (!is_object($kicker_object)) $kicker_object = new Kicker();
+	$dokick = $kicker_object->doKick();
+
+	$PRINT_OBJ = new ESCPOSPrintHandler();
+	if ($receiptType == "full" && $dokick){
+		ReceiptLib::drawerKick();
+	}
+
+	$email = CoreState::getCustomerPref('email_receipt');
+	$customerEmail = filter_var($email, FILTER_VALIDATE_EMAIL);
+	$doEmail = ($customerEmail !== False) ? True : False;
 	
 	if ($receiptType != "none")
-		$receiptContent[] = ReceiptLib::printReceipt($receiptType);
+		$receiptContent[] = ReceiptLib::printReceipt($receiptType,False,$doEmail);
 
 	if ($CORE_LOCAL->get("ccCustCopy") == 1){
 		$CORE_LOCAL->set("ccCustCopy",0);
@@ -57,11 +76,19 @@ if (strlen($receiptType) > 0) {
 		|| $receiptType == "suspended"){
 		$CORE_LOCAL->set("End",0);
 		cleartemptrans($receiptType);
+		$output = $yesSync;
+		UdpComm::udpSend("termReset");
 	}
 
-	$PRINT_OBJ = new ESCPOSPrintHandler();
+	$EMAIL_OBJ = new EmailPrintHandler();
 	foreach($receiptContent as $receipt){
-		if(!empty($receipt))
+		if(is_array($receipt)){
+			if (!empty($receipt['print']))
+				$PRINT_OBJ->writeLine($receipt['print']);
+			if (!empty($receipt['any']))
+				$EMAIL_OBJ->writeLine($receipt['any'],$customerEmail);
+		}
+		elseif(!empty($receipt))
 			$PRINT_OBJ->writeLine($receipt);
 	}
 }
@@ -70,7 +97,7 @@ $td = SigCapture::term_object();
 if (is_object($td))
 	$td->WriteToScale("reset");
 
-echo "Done";
+echo $output;
 
 function cleartemptrans($type) {
 	global $CORE_LOCAL;
@@ -93,8 +120,9 @@ function cleartemptrans($type) {
 	moveTempData();
 	truncateTempTables();
 
-	$db->close();
-
+	/**
+	  Moved to separate ajax call (ajax-transaction-sync.php)
+	*/
 	if ($CORE_LOCAL->get("testremote")==0)
 		Database::testremote(); 
 
@@ -122,16 +150,13 @@ function truncateTempTables() {
 	$connection->query($query1);
 	$connection->query($query2);
 	$connection->query($query3);
-
-	$connection->close();
 }
 
 function moveTempData() {
 	$connection = Database::tDataConnect();
 
-	$connection->query("update localtemptrans set trans_type = 'T' where trans_subtype = 'CP'");
-	//$connection->query("update localtemptrans set trans_type = 'T', trans_subtype = 'IC' where upc in ('0000000008019', '0000000003031', '0000000001014')");
-	$connection->query("update localtemptrans set upc = 'DISCOUNT', description = upc, department = 0 where trans_status = 'S'");
+	$connection->query("update localtemptrans set trans_type = 'T' where trans_subtype IN ('CP','IC')");
+	$connection->query("update localtemptrans set upc = 'DISCOUNT', description = upc, department = 0, trans_type='S' where trans_status = 'S'");
 
 	$connection->query("insert into localtrans select * from localtemptrans");
 	$connection->query("insert into localtrans_today select * from localtemptrans");
@@ -139,7 +164,5 @@ function moveTempData() {
 
 	$connection->query("insert into activitylog select * from activitytemplog");
 	$connection->query("insert into alog select * from activitytemplog");
-
-	$connection->close();
 }
 ?>

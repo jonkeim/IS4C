@@ -105,8 +105,8 @@ class NewMagellan extends ScaleDriverWrapper {
 			}
 		}
 		*/
-		$dh  = opendir($readdir);
-		while ($dh && false !== ($fn = readdir($dh))) {
+		$files = scandir($readdir);
+		foreach($files as $fn){
 			if (is_dir($readdir."/".$fn)) continue;
 			$data = file_get_contents($readdir."/".$fn);
 			unlink($readdir."/".$fn);
@@ -114,13 +114,17 @@ class NewMagellan extends ScaleDriverWrapper {
 			if (empty($line)) continue;
 			if ($line[0] == 'S'){
 				$scale_display = DisplayLib::scaledisplaymsg($line);
+				if (is_array($scale_display)){
+					if (isset($scale_display['upc']))
+						$scans[] = $scale_display['upc'];
+					$scale_display = $scale_display['display'];
+				}
 			}
 			else {
 				$scans[] = $line;
 			}
 			break;
 		}
-		closedir($dh);
 
 		$output = array();
 		if (!empty($scale_display)) $output['scale'] = $scale_display;

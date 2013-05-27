@@ -37,7 +37,7 @@ Columns:
 	staff tinyint
 	numflag int
 	charflag varchar
-	card_no varchar
+	card_no int
 	trans_id int
 
 Depends on:
@@ -228,9 +228,9 @@ $CREATE['trans.dtransactions'] = "
 	  `matched` smallint(6) default NULL,
 	  `memType` tinyint(2) default NULL,
 	  `staff` tinyint(4) default NULL,
-	  `numflag` smallint(6) default 0 NULL,
+	  `numflag` int(11) default 0 NULL,
 	  `charflag` varchar(2) default '' NULL,
-	  `card_no` varchar(12) default NULL,
+	  `card_no` int(11) default NULL,
 	  `trans_id` int(11) default NULL,
 	  INDEX(`datetime`),
 	  INDEX(`upc`),

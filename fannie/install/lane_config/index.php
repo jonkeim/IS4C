@@ -21,29 +21,33 @@
 
 *********************************************************************************/
 include('ini.php');
+include('../util.php');
 ?>
 <html>
 <head>
 <title>IT CORE Lane Global Configuration</title>
-<style type="text/css">
-body {
-	line-height: 1.5em;
-}
-</style>
+<link rel="stylesheet" href="../../src/css/install.css" type="text/css" />
+<script type="text/javascript" src="../../src/jquery/jquery.js"></script>
 </head>
 <body>
-Necessities
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<a href="extra_config.php">Additional Configuration</a>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<a href="scanning.php">Scanning Options</a>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<a href="security.php">Security</a>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<a href="text.php">Text Strings</a>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<?php
+echo showLinkToFannie();
+echo showInstallTabsLane("Lane Necessities", '');
+?>
+
 <form action=index.php method=post>
-<h1>IT CORE Install checks</h1>
+<h1>IT CORE Lane Global Configuration: Necessities</h1>
+
+<p style="line-height: 1.2em;">
+Use these forms for values that will be used on all lanes.
+<br />To install, on each lane: $LANE/install/ &nbsp; &gt; &nbsp; "Upgrade ini.php via server"
+<br />That only installs changes made here (Fannie) since the last time it was run on the lane.
+<br />The first time it is run it will probably overwrite everything in ini.php,
+<br />including config done locally with $LANE/install/*.php
+<br />22Sep12 Eric Lee In my first try at this nothing in $LANE/ini.php was changed, no reason given.
+<br /> I will see about making util.confsave() return more informative failure messages.
+</p>
+
 <h3>Basics</h3>
 OS: <select name=OS>
 <?php

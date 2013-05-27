@@ -23,24 +23,20 @@
 
 include('../config.php');
 include('updates/Update.php');
-
-echo '<html><head>';
-echo '<script src="'.$FANNIE_URL.'src/jquery/js/jquery.js" type="text/javascript"></script>';
-echo '</head><body>';
+include('util.php');
 ?>
-<a href="index.php">Necessities</a>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<a href="auth.php">Authentication</a>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<a href="mem.php">Members</a>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<a href="stores.php">Stores</a>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Updates
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<a href="module_system">Modules</a>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<a href="sample_data/extra_data.php">Sample Data</a>
+<html>
+<head>
+<title>Fannie: Database Updates</title>
+<link rel="stylesheet" href="../src/css/install.css" type="text/css" />
+<script type="text/javascript" src="../src/jquery/jquery.js"></script>
+</head>
+<body>
+<?php
+echo showInstallTabs("Updates");
+?>
+<h1>Fannie Database Updates</h1>
+<p class="ichunk">Click a link for details on the Update.</p>
 <?php
 
 $action = isset($_REQUEST['action']) ? $_REQUEST['action']: 'list';
@@ -48,6 +44,7 @@ $updateID = isset($_REQUEST['u']) ? $_REQUEST['u'] : '';
 switch($action){
 	case 'view':
 	case 'mark':
+	case 'unmark':
 		if (empty($updateID)){
 			echo 'No update specified!';
 			echo '<a href="update.php">Back</a>';
@@ -70,9 +67,13 @@ switch($action){
 		echo $obj->HtmlInfo();
 		if ($action=='mark')
 			$obj->SetStatus(True);
+		if ($action=='unmark')
+			$obj->SetStatus(False);
 		if (!$obj->CheckStatus()){
 			printf('<a href="update.php?action=apply&u=%s">Apply Update</a><br />',$updateID);
 			printf('<a href="update.php?action=mark&u=%s">Mark Update Complete</a><br />',$updateID);
+		} else {
+			printf('<a href="update.php?action=unmark&u=%s" title="This does not un-do the Update. Not all Updates can be re-run.">Un-mark Update (so it can be run again)</a><br />',$updateID);
 		}
 		echo '<a href="update.php">Back to List of Updates</a>';
 		echo "<hr />";
@@ -106,7 +107,12 @@ switch($action){
 If not, you can make corrections in your database and refresh this page to try again or just make
 alterations directly";
 		echo '<br /><br />';	
-		printf('<a href="update.php?action=mark&u=%s">Manually Mark Update Complete</a><br />',$updateID);
+		if ( !$obj->CheckStatus() ) {
+			printf('<a href="update.php?action=mark&u=%s">Manually Mark Update $updateID Complete</a><br />',$updateID);
+		} else {
+			echo "Update $updateID has been Marked Complete.<br />";
+			printf('<a href="update.php?action=unmark&u=%s" title="This does not un-do the Update. Not all Updates can be re-run.">Un-mark Update (so it can be run again)</a><br />',$updateID);
+		}
 		echo '<a href="update.php">Back to List of Updates</a>';
 		break;
 	case 'list':
@@ -122,7 +128,7 @@ alterations directly";
 		}
 		sort($updates);
 
-		// check for new vs. finished
+		// check for new vs. finished and put in separate arrays.
 		$new = array();
 		$done = array();
 		foreach($updates as $u){

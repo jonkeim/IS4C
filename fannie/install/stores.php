@@ -21,26 +21,22 @@
 
 *********************************************************************************/
 ini_set('display_errors','1');
-?>
-<?php 
 include('../config.php'); 
 include('util.php');
 ?>
-<a href="index.php">Necessities</a>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<a href="auth.php">Authentication</a>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<a href="mem.php">Members</a>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Stores
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<a href="update.php">Updates</a>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<a href="module_system">Modules</a>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<a href="sample_data/extra_data.php">Sample Data</a>
+<html>
+<head>
+<title>Fannie: Store Settings</title>
+<link rel="stylesheet" href="../src/css/install.css" type="text/css" />
+<script type="text/javascript" src="../src/jquery/jquery.js"></script>
+</head>
+<body>
+<?php 
+echo showInstallTabs("Stores");
+?>
 <form action=stores.php method=post>
-<h1>Fannie install checks</h1>
+<h1>Fannie: Store Settings</h1>
+<p class="ichunk">As of 11Apr2013 these settings are not widely or well supported.</p>
 <?php
 // path detection
 $FILEPATH = rtrim($_SERVER['SCRIPT_FILENAME'],'stores.php');
@@ -55,15 +51,18 @@ else {
 	echo "<span style=\"color:red;\"><b>Error</b>: config.php is not writeable</span>";
 }
 ?>
-<br /><br />
-<b>Store ID</b>: 
+
+<hr />
+<b>Stores</b>
+<p style="margin:0.0em 0em 0.4em 0em;"><b>Store ID</b>: 
 <?php
 if (!isset($FANNIE_STORE_ID)) $FANNIE_STORE_ID = 0;
 if (isset($_REQUEST['FANNIE_STORE_ID'])) $FANNIE_STORE_ID = $_REQUEST['FANNIE_STORE_ID'];
 confset('FANNIE_STORE_ID',"$FANNIE_STORE_ID");
 echo "<input type=text name=FANNIE_STORE_ID value=\"$FANNIE_STORE_ID\" size=3 />";
 ?>
-<br />
+ &nbsp; By convention store id #0 is HQ.
+</p>
 <?php
 /*
 	By convention store id #0 is HQ
@@ -86,6 +85,7 @@ echo "<input type=text name=FANNIE_NUM_STORES value=\"$FANNIE_NUM_STORES\" size=
 if ($FANNIE_NUM_STORES == 0) confset('FANNIE_STORES','array()');
 else {
 ?>
+
 <script type=text/javascript>
 function showhide(i,num){
 	for (var j=0; j<num; j++){
@@ -163,6 +163,7 @@ confset('FANNIE_STORES',$conf);
 <?php
 } // endif for HQ only settings
 ?>
+
 <hr />
 <input type=submit value="Re-run" />
 </form>

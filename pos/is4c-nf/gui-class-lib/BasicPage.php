@@ -328,10 +328,16 @@ class BasicPage {
 			}
 			if($CORE_LOCAL->get("CCintegrate") == 1 && 
 				$CORE_LOCAL->get("ccLive") == 1 && $CORE_LOCAL->get("training") == 0){
-			   echo "<img alt=\"cc mode\" src='/graphics/ccIn.gif'>&nbsp;";
+			   if ($CORE_LOCAL->get("CachePanEncBlock")=="")
+				   echo "<img alt=\"cc mode\" src='{$my_url}graphics/ccIn.gif'>&nbsp;";
+			   else
+				   echo "<img alt=\"cc available\" src='{$my_url}graphics/ccInLit.gif'>&nbsp;";
 			}elseif($CORE_LOCAL->get("CCintegrate") == 1 && 
 				($CORE_LOCAL->get("training") == 1 || $CORE_LOCAL->get("ccLive") == 0)){
-			   echo "<img alt=\"cc test mode\" src='{$my_url}graphics/ccTest.gif'>&nbsp;";
+			   if ($CORE_LOCAL->get("CachePanEncBlock")=="")
+				   echo "<img alt=\"cc test mode\" src='{$my_url}graphics/ccTest.gif'>&nbsp;";
+			   else
+				   echo "<img alt=\"cc available (test)\" src='{$my_url}graphics/ccTestLit.gif'>&nbsp;";
 			}
 
 			echo "<span id=\"timeSpan\" class=\"time\">".$time."</span>\n";
@@ -356,6 +362,9 @@ class BasicPage {
 			<div id="scaleBottom">
 			<?php echo DisplayLib::scaledisplaymsg(); ?>	
 			</div>
+			<div id="scaleIconBox">
+			<?php echo DisplayLib::termdisplaymsg(); ?>
+			</div>
 		</div>
 		<?php
 	}
@@ -368,6 +377,7 @@ class BasicPage {
 	  input and activates it on page load.
 	*/
 	function scanner_scale_polling($include_scans=True){
+		if (!$include_scans) return '';
 		?>
 		<script type="text/javascript"
 			src="<?php echo $this->page_url; ?>js/poll-scale.js">

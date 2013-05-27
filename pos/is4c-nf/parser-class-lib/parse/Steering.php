@@ -21,6 +21,12 @@
 
 *********************************************************************************/
 
+/* --COMMENTS - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+ *
+ * 17Feb2013 Eric Lee Support argument to PV, either before or after.
+ *           See also gui-modules/productlist.php
+*/
+
 /* 
  * This class is for any input designed to set processing
  * to an alternate gui module. That's how the particular
@@ -41,17 +47,26 @@ class Steering extends Parser {
 		$this->dest_scale = False;
 		$this->ret = $this->default_json();
 
+		// Argument to PV, either before or after.
+		if ( substr($str,-2,2) == "PV" ) {
+			$pvsearch = substr($str,0,-2);
+			$str = "PV";
+		} elseif ( substr($str,0,2) == "PV" ) {
+			$pvsearch = substr($str,2);
+			$str = "PV";
+		} else { 1; }
+
 		switch($str){
 			
 		case 'CAB':
 			if ($CORE_LOCAL->get("LastID") != "0")
-				$this->ret['output'] = boxMsg("transaction in progress");
+				$this->ret['output'] = DisplayLib::boxMsg("transaction in progress");
 			else {
 				$this->ret['main_frame'] = $my_url."gui-modules/cablist.php";
 			}
 			return True;
 		case "PV":
-			$CORE_LOCAL->set("pvsearch","");
+			$CORE_LOCAL->set("pvsearch","$pvsearch");
 			$CORE_LOCAL->set("away",1);
 			$this->ret['main_frame'] = $my_url."gui-modules/productlist.php";
 			return True;
@@ -129,13 +144,22 @@ class Steering extends Parser {
 			$CORE_LOCAL->set("search_or_list",1);
 			$this->ret['main_frame'] = $my_url."gui-modules/memlist.php";
 			return True;
+		case 'DDM':
+			$this->ret['main_frame'] = $my_url.'gui-modules/drawerPage.php';
+			return True;
+		case 'SS':
 		case 'SO':
+			// sign off and suspend shift are identical except for
+			// drawer behavior
 			if ($CORE_LOCAL->get("LastID") != 0) 
 				$this->ret['output'] = DisplayLib::boxMsg(_("Transaction in Progress"));
 			else {
 				Database::setglobalvalue("LoggedIn", 0);
 				$CORE_LOCAL->set("LoggedIn",0);
-				ReceiptLib::drawerKick();
+				if ($str == 'SO'){
+					ReceiptLib::drawerKick();
+					ReceiptLib::freeDrawer(ReceiptLib::currentDrawer());
+				}
 				$CORE_LOCAL->set("training",0);
 				$CORE_LOCAL->set("gui-scale","no");
 				$CORE_LOCAL->set("away",1);

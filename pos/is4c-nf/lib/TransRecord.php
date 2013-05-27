@@ -21,6 +21,13 @@
 
 *********************************************************************************/
 
+/* --COMMENTS - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	* 10Apr2013 Andy Theuninck Filter backslash out of comments
+	* 19Jan2013 Eric Lee Fix typo "Datbase" in reverseTaxExempt
+
+*/
+
 /**
   @class TransRecord
   Defines functions for adding records to the transaction
@@ -116,6 +123,7 @@ static public function addItem($strupc, $strdescription, $strtransType, $strtran
 
 		$CORE_LOCAL->set("refund",0);
 		$CORE_LOCAL->set("refundComment","");
+		$CORE_LOCAL->set("autoReprint",1);
 
 		if ($CORE_LOCAL->get("refundDiscountable")==0)
 			$intdiscountable = 0;
@@ -195,7 +203,6 @@ static public function addItem($strupc, $strdescription, $strtransType, $strtran
 	}
 
 	$db->smart_insert("localtemptrans",$values);
-	$db->close();
 
 	if ($strtransType == "I" || $strtransType == "D") {
 		$CORE_LOCAL->set("beep","goodBeep");
@@ -218,6 +225,8 @@ static public function addItem($strupc, $strdescription, $strtransType, $strtran
 	$CORE_LOCAL->set("ccAmtEntered",0);
 	$CORE_LOCAL->set("ccAmt",0);
 
+	if ($intscale == 1)
+		$CORE_LOCAL->set("lastWeight",$dblquantity);
 }
 
 /**
@@ -331,6 +340,7 @@ static public function addtender($strtenderdesc, $strtendercode, $dbltendered) {
 static public function addcomment($comment) {
 	if (strlen($comment) > 30)
 		$comment = substr($comment,0,30);
+	$comment = str_replace("\\",'',$comment);
 	self::addItem("",$comment, "C", "CM", "D", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 }
 
@@ -484,7 +494,7 @@ static public function reverseTaxExempt() {
 	global $CORE_LOCAL;
 	self::addItem("", "** Tax Exemption Reversed **", "", "", "D", 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10);
 	$CORE_LOCAL->set("TaxExempt",0);
-	Datbase::setglobalvalue("TaxExempt", 0);
+	Database::setglobalvalue("TaxExempt", 0);
 }
 
 //_____________________________end reverseTaxExempt()
@@ -690,18 +700,9 @@ static public function addactivity($activity) {
 		'CashierNo'	=> MiscLib::nullwrap($intcashier),
 		'TransNo'	=> MiscLib::nullwrap($CORE_LOCAL->get("transno")),
 		'Activity'	=> MiscLib::nullwrap($activity),
-		'Interval'	=> MiscLib::nullwrap($interval)
+		$db->identifier_escape('Interval')	=> MiscLib::nullwrap($interval)
 		);
-		/*
-	if ($CORE_LOCAL->get("DBMS")=="mysql"){
-		unset($values['Interval']);
-		$values['`Interval`'] = MiscLib::nullwrap($interval);
-	}
-	*/
 	$result = $db->smart_insert("activitytemplog",$values);
-
-	$db->close();
-
 }
 
 /**

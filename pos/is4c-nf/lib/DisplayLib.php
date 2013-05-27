@@ -336,7 +336,7 @@ static public function boxMsg($strmsg,$header="",$noBeep=False) {
 */
 static public function inputUnknown() {
 	return self::msgbox("<b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-			"._("input unknown")."</b>", MiscLib::base_url()."graphics/exclaimC.gif");
+			"._("input unknown")."</b>", MiscLib::base_url()."graphics/exclaimC.gif",True);
 }
 
 //--------------------------------------------------------------------//
@@ -349,6 +349,7 @@ static public function inputUnknown() {
 static public function printheaderb() {
 	global $CORE_LOCAL;
 
+	$strmemberID = "";
 	if ($CORE_LOCAL->get("memberID") == "0") {
 		$strmemberID = "";
 	}
@@ -547,6 +548,8 @@ static public function scaledisplaymsg($input=""){
 	global $CORE_LOCAL;
 	$reginput = trim(strtoupper($input));
 
+	$scans = '';
+
 	// return early; all other cases simplified
 	// by resetting session "weight"
 	if (strlen($reginput) == 0) {
@@ -578,6 +581,9 @@ static public function scaledisplaymsg($input=""){
 			$CORE_LOCAL->set("weight",$weight);
 			$display_weight = $weight." lb";
 			$CORE_LOCAL->set("scale",1);
+			if ($CORE_LOCAL->get('SNR') != 0 && $weight != 0){
+				$scans = $CORE_LOCAL->get('SNR');
+			}
 		}
 	}
 	elseif (substr($reginput, 0, 4) == "S143") {
@@ -597,7 +603,41 @@ static public function scaledisplaymsg($input=""){
 		$display_weight = "? ? ? ?";
 	}
 
-	return $display_weight;
+	$ret = array('display'=>$display_weight);
+	if (!empty($scans)) $ret['upc'] = $scans;
+
+	return $ret;
+}
+
+/**
+  Display CC terminal state
+  @return HTML string
+*/
+static public function termdisplaymsg(){
+	global $CORE_LOCAL;
+	if (!in_array("Paycards",$CORE_LOCAL->get("PluginList")))
+		return '';
+	// style box to look like a little screen
+	$ret = '<div style="background:#ccc;border:solid 1px black;padding:7px;text-align:center;font-size:120%;">';
+	$rdy = '<div style="background:#0c0;border:solid 1px black;padding:7px;text-align:center;font-size:120%;">';
+	switch($CORE_LOCAL->get('ccTermState')){
+	case 'swipe':
+		return $ret.'Slide<br />Card</div>';
+		break;
+	case 'ready':
+		return $rdy.'Ready</div>';
+		break;
+	case 'pin':
+		return $ret.'Enter<br />PIN</div>';
+		break;
+	case 'type':
+		return $ret.'Card<br />Type</div>';
+		break;
+	case 'cashback':
+		return $ret.'Cash<br />Back</div>';
+		break;
+	}
+	return '';
 }
 
 /**
@@ -682,6 +722,11 @@ static public function printReceiptfooter($readOnly=False) {
 		for($i=0;$i<=$CORE_LOCAL->get("farewellMsgCount");$i++){
 			$ret .= $CORE_LOCAL->get("farewellMsg".$i)."<br />";
 		}
+
+		$email = CoreState::getCustomerPref('email_receipt');
+		$doEmail = filter_var($email, FILTER_VALIDATE_EMAIL);
+		if($doEmail) $ret .= 'receipt emailed';
+
 		$ret .= "</div>";
 		return $ret;
 	}
@@ -708,8 +753,6 @@ static public function drawitems($top_item, $rows, $highlight) {
 	$result = $db->query($query);
 	$row = $db->fetch_array($result);
 	$rowCount = $row["count"];
-
-	$db->close();
 
 	$last_item = array();
 
@@ -777,7 +820,6 @@ static public function drawitems($top_item, $rows, $highlight) {
 				$last_item[] = $fixed_desc.$spaces.$fixed_price;
 			}
 		}
-		$db_range->close();
 	}
 
 	$td = SigCapture::term_object();

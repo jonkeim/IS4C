@@ -52,7 +52,7 @@ class VirtCoupDisplay extends NoInputPage {
 			else if (is_numeric($input)){
 				$upc = "00499999".str_pad((int)$input,5,'0',STR_PAD_LEFT);
 				$CORE_LOCAL->set("msgrepeat",1);
-				$CORE_LOCAL->set("strRemembered",$output);
+				$CORE_LOCAL->set("strRemembered",$upc);
 				$this->change_page($this->page_url."gui-modules/pos2.php");
 				return False;
 			}
@@ -141,6 +141,7 @@ class VirtCoupDisplay extends NoInputPage {
 				."<select name=\"search\" size=\"15\" "
 				."onblur=\"\$('#search').focus();\" ondblclick=\"document.forms['selectform'].submit();\" id=\"search\">";
 
+			$selectFlag = (isset($selectFlag)?$selectFlag:0);
 			for ($i = 0; $i < $num_rows; $i++) {
 				$row = $db->fetch_array($result);
 				if( $i == 0 && $selectFlag == 0) {

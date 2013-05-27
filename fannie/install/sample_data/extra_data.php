@@ -2,22 +2,26 @@
 include('../../config.php');
 if(!class_exists('SQLManager'))
 	include($FANNIE_ROOT.'src/SQLManager.php');
+include('../db.php');
+include('../util.php');
 ?>
 <html>
 <head>
-<title>Load optional data</title>
+<title>Fannie: Sample Data</title>
 <style type="text/css">
 body {
 	line-height: 1.5em;
 }
 </style>
+<link rel="stylesheet" href="../../src/css/install.css" type="text/css" />
+<script type="text/javascript" src="../../src/jquery/jquery.js"></script>
 </head>
 <body>
-<a href="../index.php">Necessities</a>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Sample Data
-<br />
+<?php
+echo showInstallTabs("Sample Data", '../');
+?>
 <form action=extra_data.php method=post>
+<H1>Fannie: Sample Data</H1>
 <blockquote><i>
 <?php
 $db = new SQLManager($FANNIE_SERVER,
@@ -80,15 +84,26 @@ elseif (isset($_REQUEST['tenders'])){
 	loaddata($db,'tenders');
 }
 elseif (isset($_REQUEST['authentication'])){
-	echo "Loadintg authentication info";
+	echo "Loading authentication info";
 	$db->query("TRUNCATE TABLE userKnownPrivs");
 	loaddata($db,'userKnownPrivs');
+}
+elseif (isset($_REQUEST['origin'])){
+	echo "Loading country info";
+	$db->query("TRUNCATE TABLE originCountry");
+	loaddata($db,'originCountry');
+	echo "<br />Loading state/province info";
+	$db->query("TRUNCATE TABLE originStateProv");
+	loaddata($db,'originStateProv');
 }
 ?>
 </i></blockquote>
 Some sample data is available to get a test lane
 up &amp; running quickly. Keep in mind this data
 overwrites whatever is currently in the table.
+<br />These utilities populate the server tables.
+Then use the <a href="../../sync/SyncIndexPage.php" target="_sync">Synchronize</a>
+utilities to populate the lane tables.
 <hr />
 <b>Employees</b><br />
 This table contains login information for cashiers. The two
@@ -131,27 +146,10 @@ Load all the default tenders into the tenders table.<br />
 Load information about currently defined authorization classes<br />
 <input type=submit name=authentication value="Load auth info" />
 <hr />
+<b>Countries, States, and Provinces</b>
+Load default origin information<br />
+<input type=submit name=origin value="Load origin info" />
+<hr />
 </form>
 </body>
 </html>
-<?php
-function loaddata($sql, $table){
-	global $FANNIE_ROOT;
-	if (file_exists("$table.sql")){
-		$fp = fopen("$table.sql","r");
-		while($line = fgets($fp)){
-			$sql->query("INSERT INTO $table VALUES $line");
-		}
-		fclose($fp);
-	}
-	else if (file_exists("$table.csv")){
-		$sql->query("LOAD DATA LOCAL INFILE
-			'{$FANNIE_ROOT}install/sample_data/$table.csv'
-			INTO TABLE $table
-			FIELDS TERMINATED BY ','
-			ESCAPED BY '\\\\'
-			OPTIONALLY ENCLOSED BY '\"'
-			LINES TERMINATED BY '\\r\\n'");
-	}
-}
-?>

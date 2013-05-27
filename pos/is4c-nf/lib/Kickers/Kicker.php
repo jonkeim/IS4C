@@ -41,10 +41,27 @@ class Kicker {
 
 		$result = $db->query($query);
 		$num_rows = $db->num_rows($result);
-		$db->close();
 
 		return ($num_rows > 0) ? True : False;
 
+	}
+
+	/**
+	  Determine whether to open the drawer when
+	  a cashier signs in
+	  @return boolean
+	*/
+	function kickOnSignIn(){
+		return True;
+	}
+
+	/**
+	  Determine whether to open the drawer when
+	  a cashier signs out
+	  @return boolean
+	*/
+	function kickOnSignOut(){
+		return True;
 	}
 }
 
