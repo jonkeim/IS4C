@@ -28,7 +28,7 @@ processData and acqRefData are additional
 values needed in addition to the token for
 certain kinds of modifying transactions
 */
-$CREATE['trans.efsnetRequestMod'] = "
+$CREATE['trans.efsnetTokens'] = "
 	CREATE TABLE efsnetTokens (
 		expireDay datetime, 
 		refNum varchar(50),
