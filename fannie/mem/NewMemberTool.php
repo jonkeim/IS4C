@@ -21,10 +21,7 @@
 
 *********************************************************************************/
 include('../config.php');
-include($FANNIE_ROOT.'classlib2.0/FanniePage.php');
-include($FANNIE_ROOT.'classlib2.0/data/FannieDB.php');
-include($FANNIE_ROOT.'classlib2.0/lib/FormLib.php');
-include($FANNIE_ROOT.'classlib2.0/data/controllers/MeminfoController.php');
+include($FANNIE_ROOT.'classlib2.0/FannieAPI.php');
 
 class NewMemberTool extends FanniePage {
 
@@ -188,7 +185,7 @@ class NewMemberTool extends FanniePage {
 
 			$args[0] = $i;
 			$dbc->exec_statement($insP,$args);
-			MeminfoController::update($i, array());
+			MeminfoModel::update($i, array());
 			$dbc->exec_statement($mdP, array($i));
 			$dbc->exec_statement($mcP, array($i));
 		}

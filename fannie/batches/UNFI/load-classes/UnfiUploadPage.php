@@ -22,12 +22,7 @@
 *********************************************************************************/
 
 include('../../../config.php');
-if (!class_exists('FannieUploadPage'))
-	include_once($FANNIE_ROOT.'classlib2.0/FannieUploadPage.php');
-if (!class_exists('FannieDB'))
-	include_once($FANNIE_ROOT.'classlib2.0/data/FannieDB.php');
-if (!class_exists('ProductsController'))
-	include_once($FANNIE_ROOT.'classlib2.0/data/controllers/ProductsController.php');
+include_once($FANNIE_ROOT.'classlib2.0/FannieAPI.php');
 
 class UnfiUploadPage extends FannieUploadPage {
 
@@ -176,7 +171,7 @@ class UnfiUploadPage extends FannieUploadPage {
 
 			// set cost in $PRICEFILE_COST_TABLE
 			$dbc->exec_statement($extraP, array($reg_unit,$upc));
-			ProductsController::update($upc, array('cost'=>$reg_unit), True);
+			ProductsModel::update($upc, array('cost'=>$reg_unit), True);
 			// end $PRICEFILE_COST_TABLE cost tracking
 
 			$args = array($brand,($sku===False?'':$sku),($size===False?'':$size),

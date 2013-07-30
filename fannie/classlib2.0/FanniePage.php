@@ -21,8 +21,8 @@
 
 *********************************************************************************/
 
-if (!function_exists('validateUserQuiet'))
-	include($FANNIE_ROOT.'auth/login.php');
+if (!class_exists('FannieAuth'))
+	include(dirname(__FILE__).'/auth/FannieAuth.php');
 
 /**
   @class FanniePage
@@ -52,7 +52,7 @@ class FanniePage {
 
 	public function __construct(){
 		global $FANNIE_AUTH_DEFAULT;
-		if ( isset($FANNIE_AUTH_DEFAULT) )
+		if ( isset($FANNIE_AUTH_DEFAULT) && !$this->must_authenticate )
 			$this->must_authenticate = $FANNIE_AUTH_DEFAULT;
 	}
 
@@ -163,15 +163,15 @@ class FanniePage {
 		foreach($this->auth_classes as $class){
 			$try = False;
 			if (is_array($class) && count($class) == 3)
-				$try = validateUserQuiet($class[0],$class[1],$class[2]);
+				$try = FannieAuth::validateUserQuiet($class[0],$class[1],$class[2]);
 			else
-				$try = validateUserQuiet($class);
+				$try = FannieAuth::validateUserQuiet($class);
 			if ($try){
 				$this->current_user = $try;
 				return True;
 			}
 		}
-		$try = checkLogin();
+		$try = FannieAuth::checkLogin();
 		if ($try && empty($this->auth_classes)){
 			$this->current_user = $try;
 			return True;
@@ -186,6 +186,7 @@ class FanniePage {
 
 		if (!$this->check_auth() && $this->must_authenticate){
 			$this->login_redirect();
+			exit;
 		}
 		elseif ($this->preprocess()){
 			
@@ -218,16 +219,18 @@ class FanniePage {
 				echo '</script>';
 			}
 
+			foreach($this->css_files as $css_url){
+				printf('<link rel="stylesheet" type="text/css" href="%s">',
+					$css_url);
+				echo "\n";
+			}
+			
+			// 22May13 Eric Lee  Moved after css_files so these take precedence.
 			$page_css = $this->css_content();
 			if (!empty($page_css)){
 				echo '<style type="text/css">';
 				echo $page_css;
 				echo '</style>';
-			}
-			foreach($this->css_files as $css_url){
-				printf('<link rel="stylesheet" type="text/css" href="%s">',
-					$css_url);
-				echo "\n";
 			}
 
 			if ($this->window_dressing) echo '</body></html>';

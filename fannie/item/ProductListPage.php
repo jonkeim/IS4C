@@ -22,10 +22,7 @@
 *********************************************************************************/
 
 include('../config.php');
-include($FANNIE_ROOT.'classlib2.0/FanniePage.php');
-include($FANNIE_ROOT.'classlib2.0/lib/FormLib.php');
-include($FANNIE_ROOT.'classlib2.0/data/FannieDB.php');
-include($FANNIE_ROOT.'classlib2.0/data/controllers/ProductsController.php');
+include($FANNIE_ROOT.'classlib2.0/FannieAPI.php');
 include($FANNIE_ROOT.'src/JsonLib.php');
 require('laneUpdates.php');
 if (!function_exists('login'))
@@ -254,7 +251,7 @@ class ProductListPage extends FanniePage {
 			$loc = FormLib::get_form_value('local');
 			if ($loc !== '') $values['local'] = $loc;
 
-			ProductsController::update($upc, $values);
+			ProductsModel::update($upc, $values);
 
 			$supplier = FormLib::get_form_value('supplier');
 			$extraP = $dbc->prepare_statement('UPDATE prodExtra SET distributor=? WHERE upc=?');
@@ -296,7 +293,7 @@ class ProductListPage extends FanniePage {
 			$upc = str_pad($upc,13,'0',STR_PAD_LEFT);
 			$desc = base64_decode(FormLib::get_form_value('desc'));
 
-			ProductsController::delete($upc);
+			ProductsModel::static_delete($upc);
 
 			$delP = $dbc->prepare_statement("delete from prodExtra where upc=?");
 			$delXR = $dbc->exec_statement($delP,array($upc));

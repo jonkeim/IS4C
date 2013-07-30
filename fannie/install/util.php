@@ -74,16 +74,16 @@ function showInstallTabs($current,$path='') {
 	$ret .= "<ul class='installTabList'>";
 
 	$installTabs = array(
-		'Necessities'=>'index.php',
-		'Authentication' => 'auth.php',
+		'Necessities'=>'InstallIndexPage.php',
+		'Authentication' => 'InstallAuthenticationPage.php',
 		'Members' => 'InstallMembershipPage.php',
-		'Products' => 'prod.php',
-		'Stores' => 'stores.php',
-		'Updates' => 'update.php',
-		'Plugins' => 'plugins.php',
-		'Menu' => 'menu.php',
-		'Lane Config' => 'lane_config/',
-		'Sample Data' => 'sample_data/extra_data.php'
+		'Products' => 'InstallProductsPage.php',
+		'Stores' => 'InstallStoresPage.php',
+		'Updates' => 'InstallUpdatesPage.php',
+		'Plugins' => 'InstallPluginsPage.php',
+		'Menu' => 'InstallMenuPage.php',
+		'Lane Config' => 'LaneConfigPages/LaneNecessitiesPage.php',
+		'Sample Data' => 'sample_data/InstallSampleDataPage.php'
 		);
 
 	foreach($installTabs as $key => $loc) {
@@ -108,12 +108,25 @@ function showInstallTabsLane($current,$path='') {
 	$ret .= "<ul class='installTabList2'>";
 
 	$installTabs = array(
+		'Lane Necessities'=>'LaneNecessitiesPage.php',
+		'Additional Configuration' => 'LaneAdditionalConfigPage.php',
+		'Scanning Options' => 'LaneScanningPage.php',
+		'Security' => 'LaneSecurityPage.php',
+		'Text Strings' => 'LaneTextStringPage.php'
+		);
+
+	/* Original
+	$installTabs = array(
+>>>>>>> flathat/master
 		'Lane Necessities'=>'index.php',
 		'Additional Configuration' => 'extra_config.php',
 		'Scanning Options' => 'scanning.php',
 		'Security' => 'security.php',
 		'Text Strings' => 'text.php'
 		);
+<<<<<<< HEAD
+=======
+	*/
 
 	foreach($installTabs as $key => $loc) {
 		if ( $key == $current ) {
@@ -128,17 +141,94 @@ function showInstallTabsLane($current,$path='') {
 
 	return $ret;
 
-// showInstallTabs()
+// showInstallTabsLane()
 }
 
-// Link "up" to higher level of install pages.
+/*
+ * Link "up" to home of next higher level of pages.
+ * See also: showLinkUp(), which takes arguments.
+*/
 function showLinkToFannie() {
+	$key =	'Up to Fannie Config';
+	$loc = 'index.php';
+	$path = '../';
 	$ret = "<ul class='installTabList'>";
-	$key =	'Up to Fannie Config'; $loc = 'index.php'; $path = '../';
 			$ret .= "<li class='installTab'><a href='$path$loc'>$key</a></li>";
 	$ret .= "</ul>";
 	$ret .= "<br style='clear:both;' />";
 	return $ret;
+}
+
+/* Link "up" to higher level of install pages.
+ * Possibly up the file tree.
+*/
+function showLinkUp($label='None',$loc='',$path='') {
+	if ( substr($path,-2,2) == '..' )
+		$path = "{$path}/";
+	$ret = "<ul class='installTabList'>";
+			$ret .= "<li class='installTab'><a href='$path$loc'>$label</a></li>";
+	$ret .= "</ul>";
+	$ret .= "<br style='clear:both;' />";
+	return $ret;
+}
+
+/**
+  Get username for PHP process
+  @return string username
+*/
+function whoami(){
+	if (function_exists('posix_getpwuid')){
+		$chk = posix_getpwuid(posix_getuid());
+		return $chk['name'];
+	}
+	else
+		return get_current_user();
+}
+
+/**
+  Check if file exists and is writable by PHP
+  @param $filename the file
+  @param $optional boolean file is not required 
+  @param $template string template for creating file
+
+  Known $template values: PHP
+
+  Prints output
+*/
+function check_writeable($filename, $optional=False, $template=False){
+	$basename = basename($filename);
+	$failure = ($optional) ? 'blue' : 'red';
+	$status = ($optional) ? 'Optional' : 'Warning';
+
+	if (!file_exists($filename) && !$optional && is_writable($filename)){
+		$fp = fopen($filename,'w');
+		if ($template !== False){
+			switch($template){
+			case 'PHP':
+				fwrite($fp,"<?php\n");
+				fwrite($fp,"?>\n");
+				break;
+			}
+		}
+		fclose($fp);
+	}
+
+	if (!file_exists($filename)){
+		echo "<span style=\"color:$failure;\"><b>$status</b>: $basename does not exist</span><br />";
+		if (!$optional){
+			echo "<b>Advice</b>: <div style=\"font-face:mono;background:#ccc;padding:8px;\">
+				touch \"".realpath(dirname($filename))."/".basename($filename)."\"<br />
+				chown ".whoami()." \"".realpath(dirname($filename))."/".basename($filename)."\"</div>";
+		}
+	}
+	elseif (is_writable($filename))
+		echo "<span style=\"color:green;\">$basename is writeable</span><br />";
+	else {
+		echo "<span style=\"color:red;\"><b>Warning</b>: $basename is not writeable</span><br />";
+		echo "<b>Advice</b>: <div style=\"font-face:mono;background:#ccc;padding:8px;\">
+			chown ".whoami()." \"".realpath(dirname($filename))."/".basename($filename)."\"<br />
+			chmod 600 \"".realpath(dirname($filename))."/".basename($filename)."\"</div>";
+	}
 }
 
 ?>

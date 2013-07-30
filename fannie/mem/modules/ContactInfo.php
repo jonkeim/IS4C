@@ -96,10 +96,10 @@ class ContactInfo extends MemberModule {
 	function SaveFormData($memNum){
 		global $FANNIE_ROOT;
 		$dbc = $this->db();
-		if (!class_exists("MeminfoController"))
-			include($FANNIE_ROOT.'classlib2.0/data/controllers/MeminfoController.php');
-		if (!class_exists("CustdataController"))
-			include($FANNIE_ROOT.'classlib2.0/data/controllers/CustdataController.php');
+		if (!class_exists("MeminfoModel"))
+			include($FANNIE_ROOT.'classlib2.0/data/models/MeminfoModel.php');
+		if (!class_exists("CustdataModel"))
+			include($FANNIE_ROOT.'classlib2.0/data/models/CustdataModel.php');
 
 		$MI_FIELDS = array(
 			'street' => FormLib::get_form_value('ContactInfo_addr1',''),
@@ -111,16 +111,44 @@ class ContactInfo extends MemberModule {
 			'email_1' => FormLib::get_form_value('ContactInfo_email',''),
 			'ads_OK' => (FormLib::get_form_value('ContactInfo_mail')!=='' ? 1 : 0)
 		);
+		/* Canadian Postal Code, and City and Province
+		 * Phone style: ###-###-####
+		*/
+		if ( preg_match("/^[A-Z]\d[A-Z]/i", $MI_FIELDS['zip']) ) {
+			$MI_FIELDS['zip'] = strtoupper($MI_FIELDS['zip']);
+			if ( strlen($MI_FIELDS['zip']) == 6 ) {
+				$MI_FIELDS['zip'] = substr($MI_FIELDS['zip'],0,3).' '. substr($MI_FIELDS['zip'],3,3);
+			}
+			// Postal code M* supply City and Province
+			if ( preg_match("/^M/", $MI_FIELDS['zip']) &&
+					$MI_FIELDS['city'] == '' && $MI_FIELDS['state'] == '') {
+				$MI_FIELDS['city'] = 'Toronto';
+				$MI_FIELDS['state'] = 'ON';
+			}
+			// Phone# style: ###-###-####
+			if ( preg_match("/^[MKLP]/", $MI_FIELDS['zip']) ) {
+				if ( preg_match("/^[-() .0-9]+$/",$MI_FIELDS['phone']) ) {
+					$phone = preg_replace("/[^0-9]/", '' ,$MI_FIELDS['phone']);
+					if ( preg_match("/^\d{10}$/",$phone) )
+						$MI_FIELDS['phone'] = preg_replace("/(\d{3})(\d{3})(\d{4})/",'${1}-${2}-${3}',$phone);
+				}
+				if ( preg_match("/^[-() .0-9]+$/",$MI_FIELDS['email_2']) ) {
+					$phone = preg_replace("/[^0-9]/", '' ,$MI_FIELDS['email_2']);
+					if ( preg_match("/^\d{10}$/",$phone) )
+						$MI_FIELDS['email_2'] = preg_replace("/(\d{3})(\d{3})(\d{4})/",'${1}-${2}-${3}',$phone);
+				}
+			}
+		}
 		if (FormLib::get_form_value('ContactInfo_addr2','') !== '')
 			$MI_FIELDS['street'] .= "\n".FormLib::get_form_value('ContactInfo_addr2');
-		$test1 = MeminfoController::update($memNum, $MI_FIELDS);
+		$test1 = MeminfoModel::update($memNum, $MI_FIELDS);
 
 		$CUST_FIELDS = array(
 			'personNum' => array(1),
 			'FirstName' => array(FormLib::get_form_value('ContactInfo_fn')),
 			'LastName' => array(FormLib::get_form_value('ContactInfo_ln'))
 		);
-		$test2 = CustdataController::update($memNum, $CUST_FIELDS);
+		$test2 = CustdataModel::update($memNum, $CUST_FIELDS);
 
 		if ($test1 === False || $test2 === False)
 			return "Error: problem saving Contact Information<br />";

@@ -22,9 +22,7 @@
 *********************************************************************************/
 
 include('../../config.php');
-include($FANNIE_ROOT.'classlib2.0/FanniePage.php');
-include($FANNIE_ROOT.'classlib2.0/data/FannieDB.php');
-include($FANNIE_ROOT.'classlib2.0/lib/FormLib.php');
+include($FANNIE_ROOT.'classlib2.0/FannieAPI.php');
 
 class AddCashierPage extends FanniePage {
 
@@ -59,11 +57,17 @@ class AddCashierPage extends FanniePage {
 			$emp_no = array_pop($dbc->fetch_row($idR));
 			if ($emp_no == '') $emp_no=1;
 
-			$insQ = $dbc->prepare_statement("INSERT INTO employees (emp_no,CashierPassword,AdminPassword,FirstName,
-					LastName,JobTitle,EmpActive,frontendsecurity,backendsecurity)
-					VALUES (?,?,?,?,?,'',1,?,?)");
-			$args = array($emp_no,$passwd,$passwd,$fn,$ln,$fes,$fes);
-			$dbc->exec_statement($insQ,$args);
+			$employee = new EmployeesModel($dbc);
+			$employee->emp_no($emp_no);
+			$employee->CashierPassword($passwd);
+			$employee->AdminPassword($passwd);
+			$employee->FirstName($fn);
+			$employee->LastName($ln);
+			$employee->JobTitle('');
+			$employee->EmpActive(1);
+			$employee->frontendsecurity($fes);
+			$employee->backendsecurity($fes);
+			$employee->save();
 
 			$this->messages = sprintf("Cashier Created<br />Name:%s<br />Emp#:%d<br />Password:%d",
 				$fn.' '.$ln,$emp_no,$passwd);

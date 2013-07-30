@@ -1,9 +1,7 @@
 <?php
 include('../../config.php');
 include($FANNIE_ROOT.'src/SQLManager.php');
-include($FANNIE_ROOT.'classlib2.0/data/FannieDB.php');
-include($FANNIE_ROOT.'classlib2.0/data/controllers/CustdataController.php');
-include($FANNIE_ROOT.'classlib2.0/data/controllers/MeminfoController.php');
+include($FANNIE_ROOT.'classlib2.0/FannieAPI.php');
 include('../db.php');
 
 include('memAddress.php');
@@ -154,7 +152,7 @@ for($i=0; $i<3; $i++){
 	}
 }
 
-MeminfoController::update($memNum, $MI_FIELDS);
+MeminfoModel::update($memNum, $MI_FIELDS);
 
 /* general note handling */
 $notetext = $_POST['notetext'];

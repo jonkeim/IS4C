@@ -22,9 +22,7 @@
 *********************************************************************************/
 
 include('../../config.php');
-include($FANNIE_ROOT.'classlib2.0/FanniePage.php');
-include($FANNIE_ROOT.'classlib2.0/data/FannieDB.php');
-include($FANNIE_ROOT.'classlib2.0/lib/FormLib.php');
+include($FANNIE_ROOT.'classlib2.0/FannieAPI.php');
 
 class CashierEditor extends FanniePage {
 
@@ -47,17 +45,16 @@ class CashierEditor extends FanniePage {
 			$active = FormLib::get_form_value('active') !== '' ? 1 : 0;
 
 			$dbc = FannieDB::get($FANNIE_OP_DB);
-			$prep = $dbc->prepare_statement("UPDATE employees SET
-				FirstName=?,
-				LastName=?,
-				CashierPassword=?,
-				AdminPassword=?,
-				frontendsecurity=?,
-				backendsecurity=?,
-				EmpActive=?
-				WHERE emp_no=?");
-			$dbc->exec_statement($prep,array($fn,$ln,$passwd,$passwd,
-				$fes,$fes,$active,$emp_no));
+			$employee = new EmployeesModel($dbc);
+			$employee->emp_no($emp_no);
+			$employee->FirstName($fn);
+			$employee->LastName($ln);
+			$employee->CashierPassword($passwd);
+			$employee->AdminPassword($passwd);
+			$employee->frontendsecurity($fes);
+			$employee->backendsecurity($fes);
+			$employee->EmpActive($active);
+			$employee->save();
 
 			$this->messages = "Cashier Updated. <a href=ViewCashiersPage.php>Back to List of Cashiers</a>";
 		}
@@ -76,19 +73,17 @@ class CashierEditor extends FanniePage {
 		}	
 
 		$emp_no = FormLib::get_form_value('emp_no',0);
-
-		$infoP = $dbc->prepare_statement("SELECT CashierPassword,FirstName,LastName,EmpActive,frontendsecurity
-				FROM employees WHERE emp_no=?");
-		$infoR = $dbc->exec_statement($infoP, array($emp_no));
-		$info = $dbc->fetch_row($infoR);
+		$employee = new EmployeesModel($dbc);
+		$employee->emp_no($emp_no);
+		$employee->load();
 
 		$ret .= "<form action=CashierEditor.php method=post>";
 		$ret .= "<table cellspacing=4 cellpadding=4>";
-		$ret .= "<tr><th>First Name</th><td><input type=text name=fname value=\"$info[1]\" /></td>";
-		$ret .= "<th>Last Name</th><td><input type=text name=lname value=\"$info[2]\" /></td></tr>";
-		$ret .= "<tr><th>Password</th><td><input type=text name=passwd value=\"$info[0]\" /></td>";
+		$ret .= "<tr><th>First Name</th><td><input type=text name=fname value=\"".$employee->FirstName()."\" /></td>";
+		$ret .= "<th>Last Name</th><td><input type=text name=lname value=\"".$employee->LastName()."\" /></td></tr>";
+		$ret .= "<tr><th>Password</th><td><input type=text name=passwd value=\"".$employee->CashierPassword()."\" /></td>";
 		$ret .= "<th>Privileges</th><td><select name=fes>";
-		if ($info[4] <= 20){
+		if ($employee->frontendsecurity() <= 20){
 			$ret .= "<option value=20 selected>Regular</option>";
 			$ret .= "<option value=30>Manager</option>";
 		}
@@ -97,7 +92,7 @@ class CashierEditor extends FanniePage {
 			$ret .= "<option value=30 selected>Manager</option>";
 		}
 		$ret .= "</select></td></tr>";
-		$ret .= "<tr><th>Active</th><td><input type=checkbox name=active ".($info[3]==1?'checked':'')." /></td>";
+		$ret .= "<tr><th>Active</th><td><input type=checkbox name=active ".($employee->EmpActive()==1?'checked':'')." /></td>";
 		$ret .= "<td colspan=2><input type=submit value=Save /></td></tr>";
 		$ret .= "<input type=hidden name=emp_no value=$emp_no />";
 		$ret .= "</table></form>";

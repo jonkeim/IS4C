@@ -530,8 +530,16 @@ public class SPH_SignAndPay_USB : SerialPortHandler {
 				if (msg[1] == BUTTON_HARDWARE_BUTTON && msg[3] == 0x43){
 					SetStateStart();
 				}
-				else {
-					PushOutput("TERMCB:"+msg[1]);
+				else if(msg[1] != 0x6){
+					// 0x6 might be a serial protocol ACK
+					// timing issue means we got here too soon
+					// and should wait for next input
+	
+					// Pressed green or yellow button
+					// Proceed to PIN entry but don't
+					// request 0xFF as cash back
+					if (msg[1] != BUTTON_HARDWARE_BUTTON)
+						PushOutput("TERMCB:"+msg[1]);
 					SetStateGetPin();
 				}
 			}

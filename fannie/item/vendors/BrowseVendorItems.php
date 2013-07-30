@@ -22,10 +22,7 @@
 *********************************************************************************/
 
 include('../../config.php');
-include($FANNIE_ROOT.'classlib2.0/FanniePage.php');
-include($FANNIE_ROOT.'classlib2.0/data/FannieDB.php');
-include($FANNIE_ROOT.'classlib2.0/data/controllers/ProductsController.php');
-include($FANNIE_ROOT.'classlib2.0/lib/FormLib.php');
+include($FANNIE_ROOT.'classlib2.0/FannieAPI.php');
 
 class BrowseVendorItems extends FanniePage {
 	protected $title = "Fannie : Browse Vendor Catalog";
@@ -165,7 +162,7 @@ class BrowseVendorItems extends FanniePage {
 		$dinfo = $dbc->exec_statement($p,array($dept));
 		$dinfo = $dbc->fetch_row($dinfo);
 		
-		ProductsController::update($upc,array(
+		ProductsModel::update($upc,array(
 			'description' => $vinfo['description'],
 			'normal_price' => $price,
 			'department' => $dept,
