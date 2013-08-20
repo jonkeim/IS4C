@@ -451,9 +451,6 @@ static public function classic_tender($right, $strl) {
 	$tender_code = $right;
 	$tendered = -1 * $strl;
 				
-	if($tender_code == "CC" && $CORE_LOCAL->get("CCintegrate") == 1) {
-		$tender_upc = $CORE_LOCAL->get("troutd");
-	}
 	$tender_desc = $row["TenderName"];				
 	$CORE_LOCAL->set("tenderamt",$strl);
 	$unit_price = 0;
@@ -591,7 +588,7 @@ static public function classic_tender($right, $strl) {
 		$cash_return = $CORE_LOCAL->get("change");
 
 		if ($right != "FS") {
-			TransRecord::addchange($cash_return,$CORE_LOCAL->get("TenderType"));
+			TransRecord::addchange($cash_return,'CA');
 		}
 
 		if ($right == "CK" && $cash_return > 0) 

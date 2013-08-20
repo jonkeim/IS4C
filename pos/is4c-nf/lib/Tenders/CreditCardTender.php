@@ -46,6 +46,9 @@ class CreditCardTender extends TenderModule {
 	  @return True or a URL to redirect
 	*/
 	function PreReqCheck(){
+		global $CORE_LOCAL;
+		if ($this->tender_code == 'CC' && $CORE_LOCAL->get('store') == 'wfc')
+			$CORE_LOCAL->set('kickOverride',True);
 		return True;
 	}
 }
